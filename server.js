@@ -35,7 +35,7 @@ app.get('/roll', function( req, res) {
 		times = 1;
 		sides = 6;
 		
-	} else if( /\dd\d+(\d)?/.test(command) ){
+	} else if( /\dd\d(\+\d)?/.test(command) ){
 		var indexOfD = command.indexOf('d');
 		var indexOfPlus = command.indexOf('+');
 		indexOfPlus = indexOfPlus === -1 ? undefined : indexOfPlus;
@@ -65,9 +65,4 @@ app.get('/flipcoin', function( req, res) {
 	res.send();
 });
 
-var server = app.listen(2303, function () {
-  var host = server.address().address;
-  var port = server.address().port;
-
-  //console.log('Example app listening at http://%s:%s', host, port);
-});
+var server = app.listen(2303, function () {});
