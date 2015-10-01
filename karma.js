@@ -22,24 +22,26 @@ function updateKarmaForUser( user, karma ) {
 
 }
 
-function doKarma( text ) {
+function doKarma( message ) {
 	var regPP = /([a-z0-9_\-\.]+)\+\+/i;
 	var ppReg = /\+\+([a-z0-9_\-\.]+)/i;
      	var regMM = /([a-z0-9_\-\.]+)\-\-/i;
 	var mmReg = /\-\-([a-z0-9_\-\.]+)/i;
-	if( ppReg.test( text ) || regPP.test( text ) ) {
-		var user = text.replace(/\+\+/g, '');
-		var karma = getKarmaForUser( user );
-		karma++;
-		updateKarmaForUser( user, karma );
-		sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
-	} else if( mmReg.test( text ) || regMM.test( text ) ) {
-		var user = text.replace(/\-\-/g, '');
-		var karma = getKarmaForUser( user );
-		karma--;
-		updateKarmaForUser( user, karma );
-		sendText( url, '@' + user + '-- [ouch! now at ' + karma + ']');
-	}
+	message.split(' ').forEach( function( text ) {
+		if( ppReg.test( text ) || regPP.test( text ) ) {
+			var user = text.replace(/\+\+/g, '');
+			var karma = getKarmaForUser( user );
+			karma++;
+			updateKarmaForUser( user, karma );
+			sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
+		} else if( mmReg.test( text ) || regMM.test( text ) ) {
+			var user = text.replace(/\-\-/g, '');
+			var karma = getKarmaForUser( user );
+			karma--;
+			updateKarmaForUser( user, karma );
+			sendText( url, '@' + user + '-- [ouch! now at ' + karma + ']');
+		}
+	});
 }
 
 module.exports = function( app ) {
