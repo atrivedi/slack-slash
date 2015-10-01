@@ -14,7 +14,7 @@ function getKarmaForUser( user ) {
 		return 0;
 	}
 }
-function updateKarmaForUser( user, karma ) {
+function setKarmaForUser( user, karma ) {
 	try {
         	db.push( '/' + user, karma );        		
         } catch(error) {
@@ -24,7 +24,6 @@ function updateKarmaForUser( user, karma ) {
 
 function normalizePPandMM( text ) {
 	var user = text.replace(/[\-\+]/g,'');
-	console.log( user );
 	var karmas = text.split( user );
 	var karma = 0;
 	karmas.forEach( function( karmaString ) {
@@ -52,9 +51,13 @@ function normalizePPandMM( text ) {
 //sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
 function doKarma( message ) {
 	message.split(/([\+\-]*\(.+?\)[\+\-]*|\S*)\s*/).forEach( function( text ) {
-		if( text.indexOf( '++' ) !== -1 || text.indexOf('--') !== -1 ) {
+		if( text[0] !== '`' && (text.indexOf( '++' ) !== -1 || text.indexOf('--') !== -1 ) ) {
 			var result = normalizePPandMM( text );
-			console.log( JSON.stringify( result ) );
+			var karma = getKarmaForUser( result.user );
+			karma += result.karma;
+			var type = result.karma > 0 ? 'good' : 'bad';
+			setKarmaForUser( result.user, karma );
+			sendText( url, result.user + ' got ' + type + ' karma [total is ' + karma + ']' );
 		}
 	});
 }
