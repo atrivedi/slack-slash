@@ -45,7 +45,7 @@ function normalizePPandMM( text ) {
 			}
 		});
 	});
-	return { user: user.replace( /[\(\)]/g,''), karma: karma };
+	return { user: user.replace( /[\(\)]/g,'').toLowerCase(), karma: karma };
 }
 
 //sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
@@ -69,7 +69,9 @@ module.exports = function( app ) {
 			var query = req.body.text;
 			if( query.indexOf( '!karma' ) === 0 ) {
 				var whom = query.replace( '!karma','') || req.body.user_name;
-				whom = whom.replace( /\s/g,'');
+				if( whom[0] === ' ') {
+					whom = whom.replace( /\s/,'');//only the first one if up front
+				}
 				var karma = getKarmaForUser( whom );
 				sendText( url, whom + ' has ' + karma + ' karma!' );
 			} else {
