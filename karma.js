@@ -8,14 +8,18 @@ var db = new JsonDB("karmadb", true, false);
 
 function getKarmaForUser( user ) {
 	try {
-		var value = db.getData( user );
-		if( typeof value !== 'number' ) {
-			value = 0;
-		}
-		return Number( value );
+		var data = db.getData( user );
+		return data[user] || 0;
 	} catch(error) {
 		return 0;
 	}
+}
+function updateKarmaForUser( user, karma ) {
+	try {
+        	db.push( '/' + user, karma );        		
+        } catch(error) {
+        }
+
 }
 
 function doKarma( text ) {
@@ -27,13 +31,13 @@ function doKarma( text ) {
 		var user = text.replace(/\+\+/g, '');
 		var karma = getKarmaForUser( user );
 		karma++;
-		db.push( user, karma );
+		updateKarmaForUser( user, karma );
 		sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
 	} else if( mmReg.test( text ) || regMM.test( text ) ) {
 		var user = text.replace(/\-\-/g, '');
 		var karma = getKarmaForUser( user );
 		karma--;
-		db.push( user, karma );
+		updateKarmaForUser( user, karma );
 		sendText( url, '@' + user + '-- [ouch! now at ' + karma + ']');
 	}
 }
@@ -42,7 +46,15 @@ module.exports = function( app ) {
 	//karmabot. out-going webhooks from slack make a POST
 	app.post( '/karma', function( req, res) {
 		if( req.body.user_name.indexOf( 'bot' ) === -1 ) {
-			doKarma( req.body.text );
+			var query = req.body.text;
+			if( query.indexOf( '!karma' ) === 0 ) {
+				var whom = query.replace( '!karma','') || req.body.user_name;
+				whom = whom.replace( /\s/g,'');
+				var karma = getKarmaForUser( whom );
+				sendText( url, whom + ' has ' + karma + ' karma!' );
+			} else {
+				doKarma( req.body.text );
+			}
 		}
 		res.send();
 	});
