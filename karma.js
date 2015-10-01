@@ -1,8 +1,22 @@
-
+var JsonDB = require('node-json-db');
 var sendText = require( './sender' );
 var url = 'https://hooks.slack.com/services/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';
 
-var localDb = {};
+//The second argument is used to tell the DB to save after each push
+//The third argument is for "human-readable" store...we don't care
+var db = new JsonDB("karmadb", true, false);
+
+function getKarmaForUser( user ) {
+	try {
+		var value = db.getData( user );
+		if( typeof value !== 'number' ) {
+			value = 0;
+		}
+		return Number( value );
+	} catch(error) {
+		return 0;
+	}
+}
 
 function doKarma( text ) {
 	var regPP = /([a-z0-9_\-\.]+)\+\+/i;
@@ -11,25 +25,22 @@ function doKarma( text ) {
 	var mmReg = /\-\-([a-z0-9_\-\.]+)/i;
 	if( ppReg.test( text ) || regPP.test( text ) ) {
 		var user = text.replace(/\+\+/g, '');
-		if( localDb[user] === undefined ) {
-			localDb[user] = 0;
-		}
-		localDb[user]++;
-		sendText( url, '@' + user + '++ [woot! now at ' + localDb[user] + ']');
+		var karma = getKarmaForUser( user );
+		karma++;
+		db.push( user, karma );
+		sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
 	} else if( mmReg.test( text ) || regMM.test( text ) ) {
 		var user = text.replace(/\-\-/g, '');
-		if( localDb[user] === undefined ) {
-			localDb[user] = 0;
-		}
-		localDb[user]--;
-		sendText( url, '@' + user + '-- [ouch! now at ' + localDb[user] + ']');
+		var karma = getKarmaForUser( user );
+		karma--;
+		db.push( user, karma );
+		sendText( url, '@' + user + '-- [ouch! now at ' + karma + ']');
 	}
 }
 
 module.exports = function( app ) {
-	//karmabot
+	//karmabot. out-going webhooks from slack make a POST
 	app.post( '/karma', function( req, res) {
-		//get local db
 		if( req.body.user_name.indexOf( 'bot' ) === -1 ) {
 			doKarma( req.body.text );
 		}
