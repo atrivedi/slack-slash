@@ -23,7 +23,15 @@ function setKarmaForUser( user, karma ) {
 }
 
 function normalizePPandMM( text ) {
+	//++ or -- in the middle? return
+	if( /.*[^\+\-\s]+[\+\-]+[^\+\-\s]+/.test( text ) ) {
+		return null;
+	}
 	var user = text.replace(/[\-\+]/g,'');
+	if( !user ) {
+		console.log('empty user');
+		return null;
+	}
 	var karmas = text.split( user );
 	var karma = 0;
 	karmas.forEach( function( karmaString ) {
@@ -48,16 +56,21 @@ function normalizePPandMM( text ) {
 	return { user: user.replace( /[\(\)]/g,'').toLowerCase(), karma: karma };
 }
 
-//sendText( url, '@' + user + '++ [woot! now at ' + karma + ']');
 function doKarma( message ) {
 	message.split(/([\+\-]*\(.+?\)[\+\-]*|\S*)\s*/).forEach( function( text ) {
 		if( text[0] !== '`' && (text.indexOf( '++' ) !== -1 || text.indexOf('--') !== -1 ) ) {
 			var result = normalizePPandMM( text );
-			var karma = getKarmaForUser( result.user );
-			karma += result.karma;
-			var type = result.karma > 0 ? 'good' : 'bad';
-			setKarmaForUser( result.user, karma );
-			sendText( url, result.user + ' got ' + type + ' karma [total is ' + karma + ']' );
+			if( result !== null ) {
+				var karma = getKarmaForUser( result.user );
+				if( result.karma === 0 ) {
+					sendText( url, result.user + ' got a no-op karma! why even!? [total is ' + karma + ']' );
+					return;
+				}
+				karma += result.karma;
+				var type = result.karma > 0 ? 'good' : 'bad';
+				setKarmaForUser( result.user, karma );
+				sendText( url, result.user + ' got ' + type + ' karma [total is ' + karma + ']' );
+			}
 		}
 	});
 }
