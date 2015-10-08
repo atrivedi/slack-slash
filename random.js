@@ -11,17 +11,18 @@ function roll( sides, times ) {
 }
 module.exports = function( app ) {
 	app.get('/roll', function( req, res) {
+		res.send();//so the caller doesn't freak out.
 		var user = req.query.user_name;
   		var command = req.query.text;
 		var times,sides,addendum;
 		if( !command ) {
 			times = 1;
 			sides = 6;
-		} else if( /\dd\d(\+\d)?/.test(command) ){
+		} else if( /\d*d\d(\+\d)?/.test(command) ){
 			var indexOfD = command.indexOf('d');
 			var indexOfPlus = command.indexOf('+');
 			indexOfPlus = indexOfPlus === -1 ? undefined : indexOfPlus;
-			times = parseInt(command.substring(0,indexOfD));
+			times = parseInt(command.substring(0,indexOfD)) || 1;
 			sides = parseInt(command.substring(indexOfD + 1,indexOfPlus));
 			if( indexOfPlus) {
 				addendum = parseInt(command.substring( indexOfPlus + 1 ));
@@ -30,14 +31,13 @@ module.exports = function( app ) {
 			res.send( 'Please, use the format "#d#". Optionally add "+#"');
 			return;
 		}
-		var value = roll(sides,times);
+		var value = sides === 0 ? 0 : roll(sides,times);
 		var rollText =  '@' + user + ' rolled a ' + times + 'd' + sides;
 		if(addendum) {
 			value += addendum;
 			rollText += ' with a +' + addendum + ' modifier';
 		}
 		sendText( url, rollText + '; result is _*' + value.toString() + '*_' );
-		res.send();
 	});
 
 	app.get('/flipcoin', function( req, res) {
