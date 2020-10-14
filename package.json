@@ -4,6 +4,6 @@
     "body-parser": "1.14.1",
     "express": "4.13.3",
     "node-json-db": "0.4.6",
-    "request": "2.64.0"
+    "request": "2.88.2"
   }
 }
